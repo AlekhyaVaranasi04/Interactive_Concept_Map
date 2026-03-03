@@ -4,6 +4,19 @@ from app.utils import save_file, extract_text_from_pdf
 from app.rag import store_document, retrieve
 from app.services import generate_mindmap_with_context, generate_direct_mindmap
 from app.models import MindmapRequest
+from app.services import (
+    generate_mindmap_with_context,
+    generate_direct_mindmap,
+    generate_mindmap_from_text
+)
+from sqlalchemy.orm import Session
+from fastapi import Depends, HTTPException
+from app.database import SessionLocal
+from app.models_db import User
+from app.auth import hash_password, verify_password, create_access_token
+from app.models import UserCreate, UserLogin
+from app.auth import get_current_user, get_db
+from app.models_db import Mindmap
 
 router = APIRouter()
 
@@ -19,12 +32,101 @@ async def upload_document(file: UploadFile = File(...)):
 
 
 @router.post("/generate-mindmap")
-async def generate_mindmap(request: MindmapRequest):
-    if request.document_id:
-        context_chunks = retrieve(request.document_id, request.topic)
-        result = generate_mindmap_with_context(request.topic, context_chunks)
-        return {"mindmap": json.loads(result)}
+async def generate_mindmap(
+    request: MindmapRequest,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    # CASE 1 — Paragraph input
+    if request.text:
+        result = generate_mindmap_from_text(request.text)
+        parsed = json.loads(result)
+        topic_name = parsed.get("topic", "Untitled")
+        topic_name = "Auto Detected"
+
+    # CASE 2 — PDF RAG
+    elif request.document_id:
+        context_chunks = retrieve(request.document_id, request.topic or "")
+        result = generate_mindmap_with_context(request.topic or "", context_chunks)
+        topic_name = request.topic or "Document Based"
+
+    # CASE 3 — Topic only
+    elif request.topic:
+        result = generate_direct_mindmap(request.topic)
+        topic_name = request.topic
 
     else:
-        result = generate_direct_mindmap(request.topic)
-        return {"mindmap": json.loads(result)}
+        return {"error": "Provide topic, text, or document_id"}
+
+    # 🔹 Save to database
+    new_map = Mindmap(
+        topic=topic_name,
+        content=result,
+        user_id=current_user.id
+    )
+
+    db.add(new_map)
+    db.commit()
+
+    return {"mindmap": json.loads(result)}
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post("/register")
+def register(user: UserCreate, db: Session = Depends(get_db)):
+
+    existing_user = db.query(User).filter(User.email == user.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+
+    hashed_pw = hash_password(user.password)
+
+    new_user = User(
+        email=user.email,
+        password=hashed_pw
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {"message": "User registered successfully"}
+
+@router.post("/login")
+def login(user: UserLogin, db: Session = Depends(get_db)):
+
+    db_user = db.query(User).filter(User.email == user.email).first()
+
+    if not db_user or not verify_password(user.password, db_user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    access_token = create_access_token(
+        data={"user_id": db_user.id}
+    )
+
+    return {"access_token": access_token}
+
+@router.get("/history")
+def get_history(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    mindmaps = db.query(Mindmap).filter(
+        Mindmap.user_id == current_user.id
+    ).all()
+
+    return [
+    {
+        "id": m.id,
+        "topic": m.topic,
+        "content": json.loads(m.content),
+        "created_at": m.created_at
+    }
+    for m in mindmaps
+  ]

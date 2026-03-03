@@ -1,2 +1,6 @@
+__pycache__/
+*.pyc
+venv/
+mindmap.db
+uploads/
 .env
-/venv

@@ -9,8 +9,11 @@ client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 
 def clean_json(text):
+    import re
+
     text = re.sub(r"```json", "", text)
     text = re.sub(r"```", "", text)
+    text = re.sub(r"\*\*", "", text)  # remove bold markers
     return text.strip()
 
 
@@ -61,6 +64,41 @@ Return strictly in JSON:
     }}
   ]
 }}
+"""
+
+    response = client.models.generate_content(
+        model="gemini-2.5-flash",
+        contents=prompt,
+    )
+
+    return clean_json(response.text)
+
+def generate_mindmap_from_text(text: str):
+    prompt = f"""
+You are an expert academic teacher.
+
+Analyze the following text carefully.
+
+1. Identify the central theme automatically.
+2. Generate a deeply structured hierarchical mindmap.
+3. Minimum 5 major subtopics.
+4. Each subtopic must have 4–6 meaningful points.
+5. Ensure logical grouping and no repetition.
+6. Keep explanations concise but conceptually strong.
+
+Return STRICTLY in JSON format:
+{{
+  "topic": "",
+  "subtopics": [
+    {{
+      "title": "",
+      "points": []
+    }}
+  ]
+}}
+
+Text:
+{text}
 """
 
     response = client.models.generate_content(
