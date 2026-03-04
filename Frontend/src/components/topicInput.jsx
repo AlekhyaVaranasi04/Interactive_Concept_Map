@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { mindmap } from "../services/api";
 
 function TopicInput({ documentId, setMindmap }) {
   const [topic, setTopic] = useState("");
@@ -10,24 +11,15 @@ function TopicInput({ documentId, setMindmap }) {
     try {
       setLoading(true);
 
-      const response = await fetch(
-        "http://127.0.0.1:8000/generate-mindmap",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            topic,
-            document_id: documentId,
-          }),
-        }
-      );
-
-      const data = await response.json();
+      const data = await mindmap.generate({
+        topic,
+        document_id: documentId,
+      });
 
       setMindmap(data.mindmap);
     } catch (err) {
       console.error(err);
-      alert("Generation failed");
+      alert(err.message || "Generation failed");
     } finally {
       setLoading(false);
     }

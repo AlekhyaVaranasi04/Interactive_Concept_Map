@@ -66,6 +66,16 @@ function Sidebar({ isOpen, onClose, activeView, setActiveView }) {
             {collapsed ? "M" : "Mindmap"}
           </li>
           <li
+            onClick={() => handleViewChange("history")}
+            className={`cursor-pointer rounded-xl transition-all border text-sm px-3 py-2 ${collapsed ? "text-center" : "w-fit"} ${
+              activeView === "history"
+                ? "bg-blue-600 text-white font-semibold border-blue-600 shadow-sm"
+                : "hover:bg-slate-100 border-transparent text-slate-700"
+            }`}
+          >
+            {collapsed ? "H" : "History"}
+          </li>
+          <li
             onClick={() => handleViewChange("quiz")}
             className={`cursor-pointer rounded-xl transition-all border text-sm px-3 py-2 ${collapsed ? "text-center" : "w-fit"} ${
               activeView === "quiz"

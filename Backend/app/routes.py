@@ -17,6 +17,8 @@ from app.auth import hash_password, verify_password, create_access_token
 from app.models import UserCreate, UserLogin
 from app.auth import get_current_user, get_db
 from app.models_db import Mindmap
+from app.services import validate_mindmap_structure
+from app.services import safe_parse_json
 
 router = APIRouter()
 
@@ -41,35 +43,51 @@ async def generate_mindmap(
     # CASE 1 — Paragraph input
     if request.text:
         result = generate_mindmap_from_text(request.text)
-        parsed = json.loads(result)
+        parsed = safe_parse_json(result)
+
+        if not validate_mindmap_structure(parsed):
+            result = generate_mindmap_from_text(request.text)
+            parsed = safe_parse_json(result)
+
         topic_name = parsed.get("topic", "Untitled")
-        topic_name = "Auto Detected"
 
     # CASE 2 — PDF RAG
     elif request.document_id:
         context_chunks = retrieve(request.document_id, request.topic or "")
         result = generate_mindmap_with_context(request.topic or "", context_chunks)
-        topic_name = request.topic or "Document Based"
+        parsed = safe_parse_json(result)
+
+        if not validate_mindmap_structure(parsed):
+            result = generate_mindmap_with_context(request.topic or "", context_chunks)
+            parsed = safe_parse_json(result)
+
+        topic_name = request.topic or parsed.get("topic", "Document Based")
 
     # CASE 3 — Topic only
     elif request.topic:
         result = generate_direct_mindmap(request.topic)
+        parsed = safe_parse_json(result)
+
+        if not validate_mindmap_structure(parsed):
+            result = generate_direct_mindmap(request.topic)
+            parsed = safe_parse_json(result)
+
         topic_name = request.topic
 
     else:
         return {"error": "Provide topic, text, or document_id"}
 
-    # 🔹 Save to database
+    # 🔹 Save CLEAN structured JSON
     new_map = Mindmap(
         topic=topic_name,
-        content=result,
+        content=json.dumps(parsed),
         user_id=current_user.id
     )
 
     db.add(new_map)
     db.commit()
 
-    return {"mindmap": json.loads(result)}
+    return {"mindmap": parsed}
 
 def get_db():
     db = SessionLocal()

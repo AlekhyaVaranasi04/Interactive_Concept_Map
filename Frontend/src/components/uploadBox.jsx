@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { mindmap } from "../services/api";
 
 function UploadBox({ setDocumentId }) {
   const [file, setFile] = useState(null);
@@ -13,18 +14,14 @@ function UploadBox({ setDocumentId }) {
     try {
       setLoading(true);
 
-      const response = await fetch("http://127.0.0.1:8000/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      const data = await response.json();
+      const data = await mindmap.upload(file);
 
       setDocumentId(data.document_id);
+      setFile(null);
       alert("Upload successful!");
     } catch (err) {
       console.error(err);
-      alert("Upload failed");
+      alert(err.message || "Upload failed");
     } finally {
       setLoading(false);
     }
@@ -36,14 +33,15 @@ function UploadBox({ setDocumentId }) {
 
       <input
         type="file"
+        accept=".pdf"
         onChange={(e) => setFile(e.target.files[0])}
         className="mb-4 file:bg-gradient-to-r file:from-sky-500 file:to-cyan-500 file:text-white file:px-4 file:py-2 file:rounded-lg file:border-none file:cursor-pointer file:hover:from-sky-600 file:hover:to-cyan-600 file:transition-all"
       />
 
       <button
         onClick={handleUpload}
-        disabled={loading}
-        className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:from-sky-600 hover:to-cyan-600 transition-all shadow-md disabled:opacity-50 font-medium border border-sky-300"
+        disabled={loading || !file}
+        className="bg-gradient-to-r from-sky-500 to-cyan-500 text-white px-4 py-2 rounded-lg hover:from-sky-600 hover:to-cyan-600 transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium border border-sky-300"
       >
         {loading ? "Uploading..." : "Upload"}
       </button>

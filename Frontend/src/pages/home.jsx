@@ -3,10 +3,11 @@ import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
 import ChatInput from "../components/ChatInput";
 import MindMapView from "../components/MindMapView";
+import HistoryPanel from "../components/HistoryPanel";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 
-function Home() {
+function Home({ onLogout }) {
   const [mindmap, setMindmap] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("mindmap");
@@ -239,6 +240,13 @@ function Home() {
           </div>
         );
 
+      case "history":
+        return (
+          <div className="h-full flex flex-col">
+            <HistoryPanel onSelectMindmap={setMindmap} />
+          </div>
+        );
+
       case "quiz":
         return (
           <div className="flex items-center justify-center h-full text-black p-4">
@@ -270,7 +278,7 @@ function Home() {
       />
 
       <div className="flex flex-col flex-1 min-w-0">
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
+        <Navbar onMenuClick={() => setSidebarOpen(true)} onLogout={onLogout} />
 
         <div className="flex-1 overflow-hidden px-2 md:px-6">{renderMainContent()}</div>
 
