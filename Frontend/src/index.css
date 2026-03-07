@@ -1,8 +1,8 @@
 @import "tailwindcss";
 
 :root {
-  font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
-  color: #000000;
+  font-family: "Inter", "Manrope", "Segoe UI", Tahoma, sans-serif;
+  color: #0f172a;
   background: #f8fafc;
 }
 
@@ -13,6 +13,45 @@
 body {
   margin: 0;
   min-height: 100vh;
-  color: #000000;
-  background: radial-gradient(circle at 12% 18%, #e0f2fe 0%, #f8fafc 35%, #ffffff 100%);
+  color: #0f172a;
+
+  background: radial-gradient(
+    circle at 10% 15%,
+    #e0f2fe 0%,
+    #f8fafc 35%,
+    #ffffff 100%
+  );
+
+  font-family: "Inter", "Manrope", sans-serif;
+}
+
+/* Mindmap container styling */
+#mindmap {
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* Smooth UI transitions */
+button {
+  transition: all 0.15s ease-in-out;
+}
+
+button:hover {
+  transform: translateY(-1px);
+}
+
+/* Scrollbar styling for modern UI */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5f5;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
 }

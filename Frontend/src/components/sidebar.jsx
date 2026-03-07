@@ -54,6 +54,10 @@ function Sidebar({ isOpen, onClose, activeView, setActiveView }) {
           </h2>
         </div>
 
+        <button onClick={() => { startNewChat(); onClose(); }} className="w-full bg-sky-600 text-white px-3 py-2 rounded-xl mb-4">
+        + New Chat
+        </button>
+
         <ul className="space-y-3 text-black mb-8">
           <li
             onClick={() => handleViewChange("mindmap")}

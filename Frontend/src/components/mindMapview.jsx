@@ -61,7 +61,6 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
 
   useEffect(() => {
     if (!data) return;
-
     let generatedNodes = [];
     let generatedEdges = [];
 
