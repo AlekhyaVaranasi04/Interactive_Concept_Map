@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { mindmap } from "../services/api";
 
-function ChatInput({ setMessages, mode = "dock", onMindmapGenerated }) {
+function ChatInput({ setMessages, mode = "dock", sessionId, onMindmapGenerated }) {
 
   const [topic, setTopic] = useState("");
   const [text, setText] = useState("");
@@ -47,6 +47,7 @@ function ChatInput({ setMessages, mode = "dock", onMindmapGenerated }) {
         topic: topic || undefined,
         text: text || undefined,
         document_id: documentId || undefined,
+        session_id: sessionId || undefined
       };
 
       Object.keys(payload).forEach(

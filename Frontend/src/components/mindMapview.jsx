@@ -24,7 +24,11 @@ const colors = [
 function getLayoutedElements(nodes, edges, direction = "TB") {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: direction, ranksep: 100, nodesep: 80 });
+  dagreGraph.setGraph({
+    rankdir: "LR",
+    ranksep: 250,
+    nodesep: 150
+  });
 
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
@@ -69,7 +73,7 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
     generatedNodes.push({
       id: "root",
       data: { label: data.topic },
-      position: { x: 0, y: 0 },
+      position: { x: 500, y: 300 },
       className: "font-bold shadow-md border-2",
       style: {
         backgroundColor: rootColor.bg,
@@ -106,7 +110,7 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
         target: subId,
         animated: true,
         style: { stroke: color.edge, strokeWidth: 2.5 },
-        type: 'smoothstep',
+        type: "bezier",
       });
 
       sub.points.forEach((point, j) => {
@@ -133,7 +137,7 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
           source: subId,
           target: pointId,
           style: { stroke: pointColor.edge, strokeWidth: 1.8 },
-          type: 'smoothstep',
+          type: "bezier",
         });
       });
     });
@@ -147,7 +151,7 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
   return (
     <div
       id="mindmap"
-      className="h-full w-full bg-gradient-to-br from-sky-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-sm"
+      className="w-full h-[700px] bg-gradient-to-br from-sky-50 to-indigo-50 rounded-2xl border border-blue-200 shadow-sm"
     >
       <ReactFlow
         key={`${layout}-${nodeStyle}-${nodes.length}-${edges.length}`}
@@ -159,6 +163,10 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
           setEdges((eds) => addEdge(params, eds))
         }
         fitView
+        fitViewOptions={{ padding: 0.2 }}
+        defaultZoom={0.9}
+        minZoom={0.3}
+        maxZoom={2}
         nodesDraggable
         nodesConnectable
         elementsSelectable

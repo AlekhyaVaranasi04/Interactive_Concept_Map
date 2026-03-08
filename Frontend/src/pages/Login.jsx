@@ -38,7 +38,9 @@ function Login({ onLoginSuccess, onSwitchToRegister }) {
             <p className="text-slate-500">Create mindmaps with AI</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
+            <input type="text" name="fakeuser" style={{ display: "none" }} />
+            <input type="password" name="fakepassword" style={{ display: "none" }} />
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
                 {error}
@@ -49,6 +51,8 @@ function Login({ onLoginSuccess, onSwitchToRegister }) {
               <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
               <input
                 type="email"
+                name="email"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -60,6 +64,8 @@ function Login({ onLoginSuccess, onSwitchToRegister }) {
               <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
               <input
                 type="password"
+                name="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"

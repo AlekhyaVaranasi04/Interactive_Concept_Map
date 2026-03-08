@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import Home from "./pages/Home";
+import Home from "./pages/home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
@@ -40,9 +40,16 @@ function App() {
     );
   }
 
+  // clear token and reload the page then flip auth state
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    window.location.reload();
+    setIsAuthenticated(false);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-sky-100 text-black transition-colors duration-300">
-      <Home onLogout={() => setIsAuthenticated(false)} />
+      <Home onLogout={handleLogout} />
     </div>
   );
 }

@@ -96,10 +96,11 @@ async def generate_mindmap(
 
     # 🔹 Save CLEAN structured JSON
     new_map = Mindmap(
-        topic=topic_name,
-        content=json.dumps(parsed),
-        user_id=current_user.id
-    )
+    topic=topic_name,
+    content=json.dumps(parsed),
+    user_id=current_user.id,
+    chat_session_id=request.session_id
+)
 
     db.add(new_map)
     db.commit()
@@ -151,10 +152,11 @@ def login(user: UserLogin, db: Session = Depends(get_db)):
 def get_history(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
-):
-    mindmaps = db.query(Mindmap).filter(
-        Mindmap.user_id == current_user.id
-    ).all()
+    ):
+    mindmaps = db.query(Mindmap)\
+    .filter(Mindmap.user_id == current_user.id)\
+    .order_by(Mindmap.created_at.desc())\
+    .all()
 
     return [
     {

@@ -52,7 +52,7 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
             <p className="text-slate-500">Create your account</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm">
                 {error}
@@ -63,6 +63,8 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
               <label className="block text-sm font-medium text-slate-700 mb-2">Email</label>
               <input
                 type="email"
+                name="email"
+                autoComplete="off"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
@@ -74,6 +76,8 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
               <label className="block text-sm font-medium text-slate-700 mb-2">Password</label>
               <input
                 type="password"
+                name="password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
@@ -85,6 +89,8 @@ function Register({ onRegisterSuccess, onSwitchToLogin }) {
               <label className="block text-sm font-medium text-slate-700 mb-2">Confirm Password</label>
               <input
                 type="password"
+                name="confirmPassword"
+                autoComplete="new-password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="••••••••"

@@ -1,14 +1,16 @@
 import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-import ChatInput from "../components/ChatInput";
+import ChatPanel from "../components/ChatPanel";
 import MindMapView from "../components/MindMapView";
 import HistoryPanel from "../components/HistoryPanel";
+import { mindmap } from "../services/api";
 import { toPng } from "html-to-image";
 import jsPDF from "jspdf";
 
 function Home({ onLogout }) {
 
+  const [sessionId, setSessionId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeView, setActiveView] = useState("mindmap");
@@ -17,18 +19,26 @@ function Home({ onLogout }) {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [historyRefreshTrigger, setHistoryRefreshTrigger] = useState(0);
 
-  const latestMindmap = messages.length > 0 ? messages[messages.length - 1].content : null;
+  const latestMindmap =
+    messages.length > 0 ? messages[messages.length - 1].content : null;
 
   const handleMindmapGenerated = () => {
-    // Trigger history refresh
-    setHistoryRefreshTrigger(prev => prev + 1);
+    setHistoryRefreshTrigger((prev) => prev + 1);
   };
 
-  // NEW CHAT
-  const startNewChat = () => {
+  // Create new chat session
+  const startNewChat = async () => {
     setMessages([]);
+
+    try {
+      const res = await mindmap.createSession("New chat");
+      setSessionId(res.session.id);
+    } catch (e) {
+      console.error("Session creation failed", e);
+    }
   };
 
+  // Export PDF
   const handleExportPDF = async () => {
     if (!latestMindmap) {
       alert("Please generate a mindmap first!");
@@ -36,32 +46,30 @@ function Home({ onLogout }) {
     }
 
     try {
-      const element = document.getElementById("mindmap");
+      const element = document.querySelector(".react-flow__viewport");
 
       const dataUrl = await toPng(element, {
-        quality: 1.0,
-        pixelRatio: 2,
+        pixelRatio: 3,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        backgroundColor: "white",
       });
 
       const pdf = new jsPDF({
         orientation: "landscape",
         unit: "px",
-        format: [element.offsetWidth, element.offsetHeight],
+        format: [element.scrollWidth, element.scrollHeight],
       });
 
-      const imgProps = pdf.getImageProperties(dataUrl);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(dataUrl, "PNG", 0, 0);
       pdf.save("mindmap.pdf");
-
     } catch (error) {
       console.error("Export failed:", error);
       alert("Export failed");
     }
   };
 
+  // Export PNG
   const handleExportPNG = async () => {
     if (!latestMindmap) {
       alert("Please generate a mindmap first!");
@@ -69,24 +77,26 @@ function Home({ onLogout }) {
     }
 
     try {
-      const element = document.getElementById("mindmap");
+      const element = document.querySelector(".react-flow__viewport");
 
       const dataUrl = await toPng(element, {
-        quality: 1.0,
-        pixelRatio: 2,
+        pixelRatio: 3,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
+        backgroundColor: "white",
       });
 
       const link = document.createElement("a");
       link.download = "mindmap.png";
       link.href = dataUrl;
       link.click();
-
     } catch (error) {
       console.error("Export failed:", error);
       alert("Export failed");
     }
   };
 
+  // Export JSON
   const handleExportJSON = () => {
     if (!latestMindmap) {
       alert("Please generate a mindmap first!");
@@ -107,22 +117,20 @@ function Home({ onLogout }) {
   };
 
   const renderMainContent = () => {
-
     switch (activeView) {
-
       case "mindmap":
-
         return (
           <div className="h-full flex flex-col">
 
             {messages.length > 0 ? (
-
               <>
+                {/* Top toolbar */}
                 <div className="bg-white/90 backdrop-blur-sm p-3 rounded-2xl shadow-sm border border-slate-200 mb-3 mx-auto">
-
                   <div className="flex flex-wrap gap-2 items-center justify-center">
 
-                    <span className="text-xs font-semibold text-black">Style:</span>
+                    <span className="text-xs font-semibold text-black">
+                      Style:
+                    </span>
 
                     <button
                       onClick={() => setNodeStyle("rounded")}
@@ -178,45 +186,32 @@ function Home({ onLogout }) {
 
                       </div>
                     )}
-
                   </div>
-
                 </div>
 
+                {/* Mindmap canvas */}
                 <div className="flex-1 flex flex-col items-center justify-center overflow-auto">
-
                   <div className="w-full max-w-7xl flex-1 overflow-auto">
 
-                    <div className="h-full">
+                    {messages.map((msg, i) => (
+                      <div key={i} className="h-full">
 
-                      {messages.map((msg, i) => (
+                        <MindMapView
+                          data={msg.content}
+                          layout={mindmapLayout}
+                          nodeStyle={nodeStyle}
+                        />
 
-                        <div key={i} className="h-full">
-
-                          <MindMapView
-                            data={msg.content}
-                            layout={mindmapLayout}
-                            nodeStyle={nodeStyle}
-                          />
-
-                        </div>
-
-                      ))}
-
-                    </div>
+                      </div>
+                    ))}
 
                   </div>
-
                 </div>
-
               </>
-
             ) : (
-
               <div className="flex-1 flex flex-col items-center justify-center px-4">
 
                 <div className="text-center mb-7">
-
                   <h2 className="text-5xl font-semibold text-slate-700 mb-4">
                     Hi, I'm Mindmap
                   </h2>
@@ -225,21 +220,18 @@ function Home({ onLogout }) {
                     How can I help you today?
                   </p>
 
-                </div>
-
-                <div className="w-full max-w-4xl">
-                  <ChatInput setMessages={setMessages} mode="center" onMindmapGenerated={handleMindmapGenerated} />
+                  <p className="text-sm text-slate-400 mt-4">
+                    Use the panel on the right to generate your mindmap.
+                  </p>
                 </div>
 
               </div>
-
             )}
 
           </div>
         );
 
       case "history":
-
         return (
           <HistoryPanel
             onSelectMindmap={(map) =>
@@ -255,7 +247,6 @@ function Home({ onLogout }) {
   };
 
   return (
-
     <div className="flex h-screen bg-gradient-to-b from-slate-100 via-white to-slate-100">
 
       <Sidebar
@@ -268,18 +259,31 @@ function Home({ onLogout }) {
 
       <div className="flex flex-col flex-1">
 
-        <Navbar onMenuClick={() => setSidebarOpen(true)} onLogout={onLogout} />
+        <Navbar
+          onMenuClick={() => setSidebarOpen(true)}
+          onLogout={onLogout}
+        />
 
-        <div className="flex-1 overflow-hidden px-2 md:px-6">
-          {renderMainContent()}
+        <div className="flex flex-1 overflow-hidden">
+
+          {/* Mindmap Workspace */}
+          <div className="flex-1 min-w-0 px-4">
+            {renderMainContent()}
+          </div>
+
+          {/* Chat Panel */}
+          <div className="w-96 border-l bg-white">
+            <ChatPanel
+              messages={messages}
+              setMessages={setMessages}
+              mindmap={latestMindmap}
+              onMindmapGenerated={handleMindmapGenerated}
+              sessionId={sessionId}
+            />
+          </div>
+
         </div>
-
-        {activeView === "mindmap" && (
-          <ChatInput setMessages={setMessages} mode="dock" onMindmapGenerated={handleMindmapGenerated} />
-        )}
-
       </div>
-
     </div>
   );
 }
