@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Sidebar({ isOpen, onClose, activeView, setActiveView }) {
+function Sidebar({ isOpen, onClose, activeView, setActiveView, startNewChat }){
   const [collapsed, setCollapsed] = useState(false);
 
   const handleViewChange = (view) => {

@@ -28,11 +28,6 @@ def create_access_token(data: dict):
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
-from fastapi import Depends, HTTPException
-from sqlalchemy.orm import Session
-from app.database import SessionLocal
-from app.models_db import User
-
 def get_db():
     db = SessionLocal()
     try:

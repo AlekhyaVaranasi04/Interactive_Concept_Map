@@ -1,8 +1,8 @@
-import { useState } from "react";
-import Sidebar from "../components/Sidebar";
+import { useState, useEffect } from "react";
+import Sidebar from "../components/sidebar";
 import Navbar from "../components/Navbar";
 import ChatPanel from "../components/ChatPanel";
-import MindMapView from "../components/MindMapView";
+import MindMapView from "../components/mindMapview";
 import HistoryPanel from "../components/HistoryPanel";
 import { mindmap } from "../services/api";
 import { toPng } from "html-to-image";
@@ -38,6 +38,9 @@ function Home({ onLogout }) {
     }
   };
 
+  useEffect(() => {
+    startNewChat();
+  }, []);
   // Export PDF
   const handleExportPDF = async () => {
     if (!latestMindmap) {
@@ -193,17 +196,15 @@ function Home({ onLogout }) {
                 <div className="flex-1 flex flex-col items-center justify-center overflow-auto">
                   <div className="w-full max-w-7xl flex-1 overflow-auto">
 
-                    {messages.map((msg, i) => (
-                      <div key={i} className="h-full">
-
+                    {latestMindmap && (
+                      <div className="h-full">
                         <MindMapView
-                          data={msg.content}
-                          layout={mindmapLayout}
-                          nodeStyle={nodeStyle}
-                        />
-
-                      </div>
-                    ))}
+                        data={latestMindmap}
+                        layout={mindmapLayout}
+                        nodeStyle={nodeStyle}
+                      />
+                    </div>
+                    )}
 
                   </div>
                 </div>

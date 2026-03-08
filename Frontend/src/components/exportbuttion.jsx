@@ -3,7 +3,7 @@ import jsPDF from "jspdf";
 
 function ExportButtons() {
   const exportImage = () => {
-    const node = document.getElementById("mindmap");
+    const node = document.querySelector(".react-flow__viewport");
     toPng(node).then((dataUrl) => {
       const link = document.createElement("a");
       link.download = "mindmap.png";
@@ -13,7 +13,7 @@ function ExportButtons() {
   };
 
   const exportPDF = () => {
-    const node = document.getElementById("mindmap");
+    const node = document.querySelector(".react-flow__viewport");
     toPng(node).then((dataUrl) => {
       const pdf = new jsPDF();
       pdf.addImage(dataUrl, "PNG", 10, 10, 180, 160);

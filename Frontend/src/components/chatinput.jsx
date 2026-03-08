@@ -80,7 +80,7 @@ function ChatInput({ setMessages, mode = "dock", sessionId, onMindmapGenerated }
     }
   };
 
-  const isCenter = mode === "center";
+  const isCenter = mode === "panel";
 
   return (
     <div

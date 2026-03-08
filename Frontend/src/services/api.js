@@ -12,8 +12,12 @@ export const apiCall = async (endpoint, options = {}) => {
     headers,
   });
   const text = await response.text();
-  let data = {};
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { detail: text }; }
+  let data;
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    data = { detail: text || "Unknown error" };
+  }
   if (!response.ok) {
     throw new Error(data.detail || data.error || "Request failed");
   }

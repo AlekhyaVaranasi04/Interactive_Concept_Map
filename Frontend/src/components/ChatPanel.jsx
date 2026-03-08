@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import QuestionInput from "./QuestionInput";import ChatInput from "./ChatInput";
-function ChatPanel({ messages, setMessages, mindmap, onMindmapGenerated }) {
+function ChatPanel({ messages, setMessages, mindmap, onMindmapGenerated, sessionId }) {
 
   const [chatMessages, setChatMessages] = useState([]);
 
@@ -10,8 +10,6 @@ function ChatPanel({ messages, setMessages, mindmap, onMindmapGenerated }) {
       role: "user",
       content: question
     };
-
-    setChatMessages(prev => [...prev, userMsg]);
 
     // temporary AI response
     const aiMsg = {

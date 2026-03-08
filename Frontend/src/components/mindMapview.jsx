@@ -85,7 +85,7 @@ function MindmapView({ data, layout = 'TB', nodeStyle = 'rounded' }) {
       },
     });
 
-    data.subtopics.forEach((sub, i) => {
+    (data.subtopics || []).forEach((sub, i) => {
       const subId = `sub-${i}`;
       const color = colors[i % colors.length];
 

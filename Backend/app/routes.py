@@ -14,12 +14,16 @@ from app.auth import get_current_user, get_db
 from app.models_db import Mindmap, ChatSession
 from app.services import validate_mindmap_structure
 from app.services import safe_parse_json
+from app.evaluate import evaluate_retrieval
 
 router = APIRouter()
 
 
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(
+    file: UploadFile = File(...),
+    current_user = Depends(get_current_user)
+):
     document_id, file_path = save_file(file)
 
     text = extract_text_from_pdf(file_path)
@@ -92,7 +96,10 @@ async def generate_mindmap(
         topic_name = request.topic
 
     else:
-        return {"error": "Provide topic, text, or document_id"}
+        raise HTTPException(
+    status_code=400,
+    detail="Provide topic, text, or document_id"
+)
 
     # 🔹 Save CLEAN structured JSON
     new_map = Mindmap(
@@ -104,15 +111,9 @@ async def generate_mindmap(
 
     db.add(new_map)
     db.commit()
+    db.refresh(new_map)
 
     return {"mindmap": parsed}
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/register")
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -169,8 +170,8 @@ def get_history(
   ]
 
 @router.post("/sessions")
-def create_session(title: str = Body(None), current_user = Depends(get_current_user), db: Session = Depends(get_db)):
-    title = title or "New chat"
+def create_session(data: dict = Body(...), current_user = Depends(get_current_user), db: Session = Depends(get_db)):
+    title = data.get("title") or "New chat"
     s = ChatSession(title=title, user_id=current_user.id)
     db.add(s); db.commit(); db.refresh(s)
     return {"session": {"id": s.id, "title": s.title, "created_at": s.created_at.isoformat()}}
@@ -197,3 +198,26 @@ def get_session_maps(session_id: int, current_user = Depends(get_current_user), 
         return {"error": "Session not found"}
     maps = db.query(Mindmap).filter(Mindmap.chat_session_id == session_id).order_by(Mindmap.created_at).all()
     return [{"id": m.id, "topic": m.topic, "content": json.loads(m.content), "created_at": m.created_at.isoformat()} for m in maps]
+
+
+@router.get("/evaluation")
+def evaluate_test(document_id: str, query: str = "DBMS"):
+
+    retrieved_chunks = retrieve(document_id, query)
+
+    if not retrieved_chunks:
+        return {
+            "precision": 0,
+            "recall": 0,
+            "f1_score": 0,
+            "accuracy": 0,
+            "message": "No chunks retrieved. Upload document again."
+        }
+
+    print("Retrieved chunks:", retrieved_chunks)
+
+    relevant_chunks = retrieved_chunks[:2]  # temporary ground truth
+
+    metrics = evaluate_retrieval(relevant_chunks, retrieved_chunks)
+
+    return metrics

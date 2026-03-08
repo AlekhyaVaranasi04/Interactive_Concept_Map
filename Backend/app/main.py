@@ -9,7 +9,6 @@ load_dotenv()
 init_db()
 
 app = FastAPI(title="Mindmap AI")
-Base.metadata.create_all(bind=engine)
 
 # CORS (Allow frontend to connect)
 app.add_middleware(

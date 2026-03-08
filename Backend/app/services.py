@@ -143,4 +143,7 @@ def safe_parse_json(text):
         return json.loads(text)
     except Exception:
         cleaned = clean_json(text)
-        return json.loads(cleaned)
+        try:
+            return json.loads(cleaned)
+        except:
+            return {"topic": "Error", "subtopics": []}
